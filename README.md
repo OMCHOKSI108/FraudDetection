@@ -1,4 +1,4 @@
-# 🔒 Credit Card Fraud Detection System
+# Credit Card Fraud Detection System
 
 <p align="center">
   <img src="https://img.shields.io/badge/Streamlit-Deployed-brightgreen?logo=streamlit" alt="Streamlit">
@@ -6,28 +6,28 @@
   <img src="https://img.shields.io/badge/Dataset-Kaggle-yellow" alt="Kaggle">
 </p>
 
-## 🚀 Live Demo
+## Live Demo
 
-**🔗 Streamlit App:** https://frauddetection-app-choksi.streamlit.app/
+**Streamlit App:** https://frauddetection-app-choksi.streamlit.app/
 
 Experience real-time fraud detection with our interactive web interface!
 
 ---
 
-## 📊 Project Overview
+## Project Overview
 
 This project implements a **Credit Card Fraud Detection System** using machine learning to identify potentially fraudulent transactions in real-time. The model is trained on the Kaggle Credit Card Fraud Detection dataset containing 284,807 transactions.
 
 ### Key Features:
-- ✅ Real-time transaction fraud prediction
-- ✅ Batch processing for multiple transactions
-- ✅ Interactive feature visualization
-- ✅ Risk analysis with actionable insights
-- ✅ User-friendly Streamlit interface
+- Real-time transaction fraud prediction
+- Batch processing for multiple transactions
+- Interactive feature visualization
+- Risk analysis with actionable insights
+- User-friendly Streamlit interface
 
 ---
 
-## 🎯 Model Summary
+## Model Summary
 
 ### Algorithm
 | Component | Details |
@@ -49,11 +49,11 @@ The model achieves:
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 MLINNOVATEX/
-│
+|
 ├── app.py                        # Flask API for predictions
 ├── streamlit_app.py              # Streamlit web interface
 ├── CreditCardFraudDetection_ML.ipynb  # Model training notebook
@@ -67,9 +67,7 @@ MLINNOVATEX/
 │   ├── index.html                # HTML frontend
 │   └── script.js                # JavaScript for API calls
 │
-├── static/                       # Static files (CSS/JS)
-├── templates/                    # HTML templates
-│
+├── docs/                         # Documentation images
 ├── requirements.txt              # Python dependencies
 ├── Dockerfile                    # Docker configuration
 ├── Procfile                      # Deployment config
@@ -78,7 +76,7 @@ MLINNOVATEX/
 
 ---
 
-## 🖥️ Application Screenshots
+## Application Screenshots
 
 ### 1. Model Summary & Performance
 ![Model Summary](docs/model_summary.png)
@@ -106,7 +104,7 @@ MLINNOVATEX/
 
 ---
 
-## 🧮 Flask API Documentation
+## Flask API Documentation
 
 ### Endpoint: `/predict`
 
@@ -139,11 +137,11 @@ MLINNOVATEX/
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Streamlit Cloud Deployment
 The application is deployed on **Streamlit Cloud**:  
-🔗 https://frauddetection-app-choksi.streamlit.app/
+https://frauddetection-app-choksi.streamlit.app/
 
 ### Local Deployment
 
@@ -179,7 +177,7 @@ python app.py
 
 ---
 
-## 📦 Requirements
+## Requirements
 
 ```
 streamlit>=1.28.0
@@ -195,7 +193,7 @@ flask>=3.0.0
 
 ---
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Single Transaction Detection
 1. Open the Streamlit app
@@ -211,37 +209,37 @@ flask>=3.0.0
 
 ### Quick Examples
 Use pre-loaded examples:
-- 📊 Sample Legitimate - Normal transaction
-- ⚠️ High Amount Fraud - Large fraudulent transaction
-- ⚠️ Low Amount Fraud - Small fraudulent transaction
+- Sample Legitimate - Normal transaction
+- High Amount Fraud - Large fraudulent transaction
+- Low Amount Fraud - Small fraudulent transaction
 
 ---
 
-## 🔍 Feature Interpretation
+## Feature Interpretation
 
 | Feature | High Negative Value | High Positive Value |
 |---------|---------------------|---------------------|
-| V14, V17 | Likely Fraud ⚠️ | Likely Legit ✓ |
-| V12, V10 | Likely Fraud ⚠️ | Likely Legit ✓ |
+| V14, V17 | Likely Fraud | Likely Legit |
+| V12, V10 | Likely Fraud | Likely Legit |
 | Amount | High Amount | Normal Amount |
 | Time | Unusual Hours | Business Hours |
 
 ---
 
-## 📝 Author
+## Author
 
 **Om Choksi**  
 Machine Learning Developer | AIML316 - Advance Machine Learning with Python
 
 ---
 
-## 📄 License
+## License
 
 This project is for educational purposes.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Kaggle for the Credit Card Fraud Detection dataset
 - XGBoost for the machine learning algorithm
@@ -251,5 +249,5 @@ This project is for educational purposes.
 ---
 
 <p align="center">
-  <b>🔒 Secure Your Transactions with AI 🔒</b>
+  <b>Secure Your Transactions with AI</b>
 </p>
