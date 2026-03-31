@@ -1,66 +1,110 @@
-import streamlit as st
+from flask import Flask, request, jsonify, render_template
 import joblib
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import os
 
-# Load model and scaler
-MODEL_PATH = os.path.join('.', 'Models', 'best_model.pkl')
-SCALER_PATH = os.path.join('.', 'Models', 'scaler_ann.pkl')
+app = Flask(__name__, static_folder="static", template_folder="templates")
+
+MODEL_PATH = os.path.join("Models", "best_model_xgb.pkl")
+SCALER_PATH = os.path.join("Models", "scaler.pkl")
+TOP_FEATURES_PATH = os.path.join("Models", "top_features.pkl")
+
 model = joblib.load(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
+top_features = joblib.load(TOP_FEATURES_PATH)
 
-st.set_page_config(page_title="Credit Card Default Prediction", layout="centered")
-st.title("Credit Card Default Prediction")
-st.markdown("""
-This app predicts the probability of credit card default using a trained machine learning model.\
-Fill in the features below and click **Predict**.\
+RAW_FEATURES = [
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "Amount",
+    "Time",
+]
 
-*Model: Trained on anonymized credit card transaction data.*
-""")
+SCALED_FEATURES = [
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "scaled_Amount",
+    "scaled_Time",
+]
 
-with st.expander("ℹ️ About this app"):
-    st.write("""
-    - **Features:** V1–V28, Amount, Time (technical features from PCA)
-    - **Model:** Your trained model (e.g., XGBoost, RandomForest, etc.)
-    - **Scaler:** StandardScaler or similar
-    - **Explainability:** SHAP plots (if available)
-    """)
+AMOUNT_MEAN, AMOUNT_STD = 88.35, 250.12
+TIME_MEAN, TIME_STD = 94813.86, 47488.15
 
-# Input fields
-def user_input_features():
-    amount = st.number_input('Amount', min_value=0.0, value=100.0)
-    time = st.number_input('Time', min_value=0.0, value=50000.0)
-    v_features = []
-    for i in range(1, 29):
-        v = st.number_input(f'V{i}', value=0.0)
-        v_features.append(v)
-    features = [amount, time] + v_features
-    return features
 
-features = user_input_features()
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-if st.button('Predict'):
-    # Arrange features in correct order for model
-    # (Adjust order if your model expects differently)
-    X = scaler.transform([features])
-    pred = int(model.predict(X)[0])
-    proba = model.predict_proba(X)[0][1] if hasattr(model, 'predict_proba') else None
-    st.success(f'Prediction: {"Default" if pred else "No Default"}')
-    if proba is not None:
-        st.info(f'Probability of Default: {proba:.2%}')
 
-    # Example: Show a simple plot (replace with SHAP or other explainability plots if available)
-    st.subheader("Feature Values")
-    fig, ax = plt.subplots(figsize=(10, 2))
-    sns.barplot(x=[f'V{i}' for i in range(1, 29)], y=features[2:], ax=ax)
-    plt.xticks(rotation=90)
-    st.pyplot(fig)
+@app.route("/predict", methods=["POST"])
+def predict():
+    data = request.json["features"]
+    raw_row = {k: float(data.get(k, 0.0)) for k in RAW_FEATURES}
+    scaled_row = {
+        **{k: raw_row[k] for k in RAW_FEATURES if k not in ["Amount", "Time"]},
+        "scaled_Amount": (raw_row["Amount"] - AMOUNT_MEAN) / AMOUNT_STD,
+        "scaled_Time": (raw_row["Time"] - TIME_MEAN) / TIME_STD,
+    }
+    scaler_input = [scaled_row[k] for k in SCALED_FEATURES]
+    X_scaled = scaler.transform([scaler_input])
+    model_input = {top_features[i]: X_scaled[0][i] for i in range(len(top_features))}
+    X_model = np.array([[model_input[f] for f in top_features]])
+    proba = float(model.predict_proba(X_model)[0][1])
+    pred = int(proba >= 0.5)
+    return jsonify({"prediction": pred, "probability": proba})
 
-    # Placeholder for SHAP or other explainability plots
-    st.subheader("Model Explainability (Coming Soon)")
-    st.write("Add SHAP or other explainability plots here.")
 
-st.markdown("---")
-st.caption("Built with Streamlit. [GitHub Repo](https://github.com/yourusername/yourrepo)")
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

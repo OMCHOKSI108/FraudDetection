@@ -1,42 +1,154 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Credit Card Default Prediction</title>
-  <style>
-    body { background: #fff; color: #222; font-family: Arial, sans-serif; margin: 0; padding: 2em; }
-    .container { max-width: 600px; margin: auto; background: #fafafa; padding: 2em; border-radius: 8px; box-shadow: 0 2px 8px #eee; }
-    h2 { text-align: center; }
-    label { display: block; margin-top: 1em; }
-    input, button { width: 100%; padding: 0.5em; margin-top: 0.2em; }
-    #result { margin-top: 2em; font-size: 1.2em; text-align: center; }
-    .explanation { font-size: 0.95em; color: #555; margin-bottom: 1em; }
-    .plots { margin-top: 2em; text-align: center; }
-    img { max-width: 100%; border-radius: 6px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Fraud Detection</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 2em;
+        }
+        .container { 
+            max-width: 900px; margin: auto; 
+            background: white; padding: 2em; 
+            border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h2 { text-align: center; color: #333; margin-bottom: 1em; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1em; }
+        .form-group { margin-bottom: 0.5em; }
+        label { display: block; font-weight: 600; color: #555; margin-bottom: 0.3em; font-size: 0.9em; }
+        input { width: 100%; padding: 0.7em; border: 2px solid #ddd; border-radius: 8px; font-size: 1em; transition: border-color 0.3s; }
+        input:focus { outline: none; border-color: #667eea; }
+        .section-title { grid-column: 1/-1; background: #f8f9fa; padding: 0.5em 1em; border-radius: 8px; margin-top: 1em; font-weight: bold; color: #667eea; }
+        button { 
+            width: 100%; padding: 1em; margin-top: 1.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; border-radius: 8px; 
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        #result { 
+            margin-top: 2em; padding: 1.5em; border-radius: 12px; 
+            text-align: center; font-size: 1.3em; display: none;
+        }
+        .fraud { background: #ffebee; color: #c62828; border: 2px solid #ef5350; }
+        .legit { background: #e8f5e9; color: #2e7d32; border: 2px solid #66bb6a; }
+        .error { background: #fff3e0; color: #e65100; border: 2px solid #ff9800; }
+        .loading { display: none; text-align: center; margin-top: 1em; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Credit Card Default Prediction</h2>
-    <div class="explanation">
-      Enter the required features below. <br>
-      <b>Note:</b> For demo purposes, these are technical features (e.g., V1–V28, Amount, Time). In a real app, these would be replaced with user-friendly fields.
+    <div class="container">
+        <h2>Credit Card Fraud Detection</h2>
+        <form id="predictForm" class="form-grid">
+            <div class="section-title">Transaction Details</div>
+            <div class="form-group">
+                <label>Time (seconds from first transaction)</label>
+                <input type="number" step="any" name="time" required>
+            </div>
+            <div class="form-group">
+                <label>Amount ($)</label>
+                <input type="number" step="any" name="amount" required>
+            </div>
+            <div class="section-title">PCA Features (V1 - V28)</div>
+            <div class="form-group">
+                <label>V1 <input type="number" step="any" name="v1" required></label>
+            </div>
+            <div class="form-group">
+                <label>V2 <input type="number" step="any" name="v2" required></label>
+            </div>
+            <div class="form-group">
+                <label>V3 <input type="number" step="any" name="v3" required></label>
+            </div>
+            <div class="form-group">
+                <label>V4 <input type="number" step="any" name="v4" required></label>
+            </div>
+            <div class="form-group">
+                <label>V5 <input type="number" step="any" name="v5" required></label>
+            </div>
+            <div class="form-group">
+                <label>V6 <input type="number" step="any" name="v6" required></label>
+            </div>
+            <div class="form-group">
+                <label>V7 <input type="number" step="any" name="v7" required></label>
+            </div>
+            <div class="form-group">
+                <label>V8 <input type="number" step="any" name="v8" required></label>
+            </div>
+            <div class="form-group">
+                <label>V9 <input type="number" step="any" name="v9" required></label>
+            </div>
+            <div class="form-group">
+                <label>V10 <input type="number" step="any" name="v10" required></label>
+            </div>
+            <div class="form-group">
+                <label>V11 <input type="number" step="any" name="v11" required></label>
+            </div>
+            <div class="form-group">
+                <label>V12 <input type="number" step="any" name="v12" required></label>
+            </div>
+            <div class="form-group">
+                <label>V13 <input type="number" step="any" name="v13" required></label>
+            </div>
+            <div class="form-group">
+                <label>V14 <input type="number" step="any" name="v14" required></label>
+            </div>
+            <div class="form-group">
+                <label>V15 <input type="number" step="any" name="v15" required></label>
+            </div>
+            <div class="form-group">
+                <label>V16 <input type="number" step="any" name="v16" required></label>
+            </div>
+            <div class="form-group">
+                <label>V17 <input type="number" step="any" name="v17" required></label>
+            </div>
+            <div class="form-group">
+                <label>V18 <input type="number" step="any" name="v18" required></label>
+            </div>
+            <div class="form-group">
+                <label>V19 <input type="number" step="any" name="v19" required></label>
+            </div>
+            <div class="form-group">
+                <label>V20 <input type="number" step="any" name="v20" required></label>
+            </div>
+            <div class="form-group">
+                <label>V21 <input type="number" step="any" name="v21" required></label>
+            </div>
+            <div class="form-group">
+                <label>V22 <input type="number" step="any" name="v22" required></label>
+            </div>
+            <div class="form-group">
+                <label>V23 <input type="number" step="any" name="v23" required></label>
+            </div>
+            <div class="form-group">
+                <label>V24 <input type="number" step="any" name="v24" required></label>
+            </div>
+            <div class="form-group">
+                <label>V25 <input type="number" step="any" name="v25" required></label>
+            </div>
+            <div class="form-group">
+                <label>V26 <input type="number" step="any" name="v26" required></label>
+            </div>
+            <div class="form-group">
+                <label>V27 <input type="number" step="any" name="v27" required></label>
+            </div>
+            <div class="form-group">
+                <label>V28 <input type="number" step="any" name="v28" required></label>
+            </div>
+            <button type="submit">Detect Fraud</button>
+        </form>
+        <div id="result"></div>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing transaction...</p>
+        </div>
     </div>
-    <form id="predictForm">
-      <label>Amount <input type="number" name="amount" required></label>
-      <label>Time <input type="number" name="time" required></label>
-      <label>V1 <input type="number" name="v1" required></label>
-      <label>V2 <input type="number" name="v2" required></label>
-      <!-- Repeat for all features up to V28 -->
-      <button type="submit">Predict</button>
-    </form>
-    <div id="result"></div>
-    <div class="plots">
-      <h3>Model Performance</h3>
-      <img src="roc_curve.png" alt="ROC Curve (example)">
-      <img src="accuracy_plot.png" alt="Accuracy Plot (example)">
-      <!-- Replace with your actual plot images -->
-    </div>
-  </div>
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
