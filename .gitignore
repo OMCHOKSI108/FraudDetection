@@ -1,6 +1,0 @@
-# Ignore large dataset files
-creditcard.csv
-.virtual_documents
-.ipynb_checkpoints
-venv
-venv/

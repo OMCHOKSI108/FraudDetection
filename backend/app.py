@@ -3,7 +3,7 @@ import joblib
 import numpy as np
 import os
 
-app = Flask(__name__, static_folder='../frontend', template_folder='../frontend')
+app = Flask(__name__, static_folder='../frontend', template_folder='./frontend')
 model = joblib.load(os.path.join('../models', 'best_model.pkl'))
 scaler = joblib.load(os.path.join('../models', 'scaler_ann.pkl'))
 
