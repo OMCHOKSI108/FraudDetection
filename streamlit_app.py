@@ -266,7 +266,7 @@ def create_gauge_chart(probability):
     return fig
 
 
-def create_prediction_explanation(pred, proba, model_input):
+def create_prediction_explanation(pred, proba, model_input, raw_features):
     st.markdown("---")
     st.subheader("📊 Prediction Analysis")
 
@@ -294,17 +294,32 @@ def create_prediction_explanation(pred, proba, model_input):
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("### 🔍 Feature Importance")
-        feat_imp = get_feature_importance()
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ax.barh(
-            feat_imp["Feature"].tail(10),
-            feat_imp["Importance"].tail(10),
-            color="#667eea",
+        st.markdown("### 🔍 Input Feature Values")
+        input_df = pd.DataFrame(
+            [
+                {"Feature": f"V{i}", "Value": raw_features.get(f"V{i}", 0)}
+                for i in range(1, 29)
+            ]
+            + [
+                {"Feature": "Amount", "Value": raw_features.get("Amount", 0)},
+                {"Feature": "Time", "Value": raw_features.get("Time", 0)},
+            ]
         )
-        ax.set_xlabel("Importance")
-        ax.set_title("Top 10 Most Important Features", fontweight="bold")
-        st.pyplot(fig)
+
+        fig_input, ax_input = plt.subplots(figsize=(8, 6))
+        v_features = [f"V{i}" for i in range(1, 29)]
+        values = [raw_features.get(f"V{i}", 0) for i in range(1, 29)]
+        colors_input = ["#ff4757" if v < -1 or v > 1 else "#667eea" for v in values]
+        ax_input.barh(v_features, values, color=colors_input)
+        ax_input.axvline(x=0, color="black", linestyle="-", linewidth=0.5)
+        ax_input.axvline(
+            x=1, color="red", linestyle="--", alpha=0.5, label="Threshold ±1"
+        )
+        ax_input.axvline(x=-1, color="red", linestyle="--", alpha=0.5)
+        ax_input.set_xlabel("Feature Value")
+        ax_input.set_title("Input Feature Values (Red = Outliers)", fontweight="bold")
+        ax_input.legend()
+        st.pyplot(fig_input)
 
     with col2:
         st.markdown("### 📈 Risk Gauge")
@@ -321,25 +336,78 @@ def create_prediction_explanation(pred, proba, model_input):
     )
     st.dataframe(contributing_df, use_container_width=True)
 
-    risk_factors = []
-    for feat, val in top_contributing[:3]:
-        if feat in ["V14", "V17", "V12", "V10"]:
-            risk_factors.append(
-                f"- **{feat}** has high negative value ({val:.3f}), common in fraudulent transactions"
-            )
+    st.markdown("### 📊 Feature Impact Analysis")
+
+    impact_data = []
+    for feat, scaled_val in model_input.items():
+        if feat.startswith("V"):
+            raw_val = raw_features.get(feat, 0)
         elif feat == "scaled_Amount":
-            risk_factors.append(
-                f"- **Amount** is {'unusually high' if val > 1 else 'normal'} for this transaction"
-            )
+            raw_val = raw_features.get("Amount", 0)
+            scaled_val = (raw_val - AMOUNT_MEAN) / AMOUNT_STD
         elif feat == "scaled_Time":
-            risk_factors.append(
-                f"- **Time** pattern: {'unusual hours' if abs(val) > 1 else 'normal business hours'}"
-            )
+            raw_val = raw_features.get("Time", 0)
+            scaled_val = (raw_val - TIME_MEAN) / TIME_STD
+        else:
+            raw_val = scaled_val
+
+        impact = "HIGH RISK" if pred == 1 and scaled_val < -0.5 else "NORMAL"
+        if pred == 0 and scaled_val > 0.5:
+            impact = "LOW RISK"
+
+        impact_data.append(
+            {
+                "Feature": feat,
+                "Raw Value": f"{raw_val:.4f}",
+                "Scaled Value": f"{scaled_val:.4f}",
+                "Status": impact,
+            }
+        )
+
+    impact_df = pd.DataFrame(impact_data)
+    st.dataframe(impact_df, use_container_width=True)
+
+    st.markdown("#### Risk Analysis:")
+
+    risk_factors = []
+    for feat, scaled_val in model_input.items():
+        if feat.startswith("V"):
+            raw_val = raw_features.get(feat, 0)
+            if raw_val < -2:
+                risk_factors.append(
+                    f"- **{feat}**: Very low value ({raw_val:.2f}) - unusual pattern detected"
+                )
+            elif raw_val > 2:
+                risk_factors.append(
+                    f"- **{feat}**: Very high value ({raw_val:.2f}) - unusual pattern detected"
+                )
+            elif raw_val < -1:
+                risk_factors.append(
+                    f"- **{feat}**: Low value ({raw_val:.2f}) - may indicate fraud pattern"
+                )
+
+    amount = raw_features.get("Amount", 0)
+    if amount > AMOUNT_MEAN + 3 * AMOUNT_STD:
+        risk_factors.append(
+            f"- **Amount**: Extremely high (${amount:.2f}) - unusual transaction"
+        )
+    elif amount > AMOUNT_MEAN + 2 * AMOUNT_STD:
+        risk_factors.append(f"- **Amount**: Above average (${amount:.2f}) -需要注意")
+
+    time_val = raw_features.get("Time", 0)
+    time_hour = (time_val % 86400) / 3600
+    if time_hour < 6 or time_hour > 22:
+        risk_factors.append(
+            f"- **Time**: Unusual hours ({time_hour:.1f}:00) - outside business hours"
+        )
 
     if risk_factors:
-        st.markdown("#### Risk Analysis:")
         for factor in risk_factors:
             st.markdown(factor)
+    else:
+        st.markdown(
+            "- No significant risk factors detected - transaction appears normal"
+        )
 
     st.markdown("### 📋 Transaction Summary")
 
@@ -349,12 +417,16 @@ def create_prediction_explanation(pred, proba, model_input):
             "Time from First Transaction",
             "Prediction",
             "Confidence Score",
+            "Amount Status",
+            "Time Status",
         ],
         "Value": [
-            f"${model_input.get('scaled_Amount', 0) * AMOUNT_STD + AMOUNT_MEAN:.2f}",
-            f"{int(model_input.get('scaled_Time', 0) * TIME_STD + TIME_MEAN)} seconds",
+            f"${amount:.2f}",
+            f"{int(time_val)} seconds",
             "Fraud" if pred == 1 else "Legitimate",
             f"{max(proba, 1 - proba) * 100:.2f}%",
+            "HIGH" if amount > AMOUNT_MEAN + 2 * AMOUNT_STD else "Normal",
+            f"{time_hour:.1f}:00" if time_val > 0 else "N/A",
         ],
     }
     summary_df = pd.DataFrame(summary_data)
@@ -424,7 +496,7 @@ with tab1:
 
     if st.button("🔍 Detect Fraud", type="primary", use_container_width=True):
         pred, proba, model_input = get_prediction(features)
-        create_prediction_explanation(pred, proba, model_input)
+        create_prediction_explanation(pred, proba, model_input, features)
 
 with tab2:
     st.header("Batch Prediction")
