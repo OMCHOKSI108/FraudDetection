@@ -1,14 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import joblib
 import numpy as np
 import os
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
+model = joblib.load(os.path.join('models', 'best_model.pkl'))
+scaler = joblib.load(os.path.join('models', 'scaler_ann.pkl'))
+
 @app.route('/')
 def index():
     return render_template('index.html')
-model = joblib.load(os.path.join('Models', 'best_model.pkl'))
-scaler = joblib.load(os.path.join('Models', 'scaler_ann.pkl'))
 
 @app.route('/predict', methods=['POST'])
 def predict():
